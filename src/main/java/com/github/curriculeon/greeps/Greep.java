@@ -4,6 +4,9 @@ import com.github.git_leon.RandomUtils;
 import com.github.git_leon.jfoot.sprite.SpriteSensorDecorator;
 import greenfoot.Actor;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * A Greep is an alien creature that likes to collect tomatoes.
  *
@@ -26,10 +29,33 @@ public class Greep extends Creature {
         if (isCarryingTomato()) {
             if (isAtShip()) {
                 dropTomato();
+                turnRandomDegrees();
             } else {
-                turnTowardsHome();
+                spit("red");
+                if(isAtEdge() || isAtWater() || isAtWorldEdge()){
+                    turnRandomDegrees(180, 225);
+                    setMemory(getMemory()+1);
+                }   else if(getMemory() >= 1){
+                    turnTowardsHome();
+                    setMemory(0);
+                }
             }
+            move();
+        }   else if(isAtTomatoes()){
+            List<Greep> assistingNeighbors = getNeighbours(100, true, Greep.class).stream().filter(Greep::isWaitingToAssist).collect(Collectors.toList());
+            for (Greep assistingNeighbor : assistingNeighbors) {
+                turnTowards(assistingNeighbor);
+                move();
+                return;
+            }
+            loadTomato();
+            return;
         }
+        
+        if(isAtEdge() || isAtWater() || isAtWorldEdge()){
+            turnRandomDegrees(45, 45);
+        }
+        
         move();
     }
 
@@ -85,7 +111,7 @@ public class Greep extends Creature {
 
 
     public void returnToShip() {
-        turnTowardsHome(3);
+        turnTowardsHome(80);
         move();
     }
 
